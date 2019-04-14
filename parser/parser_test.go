@@ -449,11 +449,43 @@ func TestParsingPrefixExpressions(t *testing.T) {
 }
 
 func TestLetStatements(t *testing.T) {
-	input := `
-	return 5;
-	return 10;
-	return 993322;
-	`
+	tests := []struct {
+		input               string
+		expecetedIdentifier string
+		expectedValue       interface{}
+	}{
+		{"let x = 5;", "x", 5},
+		{"let y = true;", "y", true},
+		{"let foobar = y;", "foobar", "y"},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := parser.New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contain 1 statements. got=%d", len(program.Statements))
+		}
+
+		stmt := program.Statements[0]
+		if !testLetStatement(t, stmt, tt.expecetedIdentifier) {
+			return
+		}
+
+		val := stmt.(*ast.LetStatement).Value
+		if !testLiteralExpression(t, val, tt.expectedValue) {
+			return
+		}
+
+	}
+
+	// input := `
+	// return 5;
+	// return 10;
+	// return 993322;
+	// `
 
 	// input := `
 	// let x = 5;
@@ -461,26 +493,26 @@ func TestLetStatements(t *testing.T) {
 	// let foobar = 838383;
 	// `
 
-	l := lexer.New(input)
-	p := parser.New(l)
+	// l := lexer.New(input)
+	// p := parser.New(l)
 
-	program := p.ParseProgram()
-	checkParserErrors(t, p)
+	// program := p.ParseProgram()
+	// checkParserErrors(t, p)
 
-	if len(program.Statements) != 3 {
-		t.Fatalf("program.Statements does not contain 3 statements. got=%d", len(program.Statements))
-	}
+	// if len(program.Statements) != 3 {
+	// 	t.Fatalf("program.Statements does not contain 3 statements. got=%d", len(program.Statements))
+	// }
 
-	for _, stmt := range program.Statements {
-		returnStmt, ok := stmt.(*ast.ReturnStatement)
-		if !ok {
-			t.Errorf("stmt not *ast.returnStatement. got=%T", stmt)
-			continue
-		}
-		if returnStmt.TokenLiteral() != "return" {
-			t.Errorf("returnStmt.TokenLiteral not 'return', got %q", returnStmt.TokenLiteral())
-		}
-	}
+	// for _, stmt := range program.Statements {
+	// 	returnStmt, ok := stmt.(*ast.ReturnStatement)
+	// 	if !ok {
+	// 		t.Errorf("stmt not *ast.returnStatement. got=%T", stmt)
+	// 		continue
+	// 	}
+	// 	if returnStmt.TokenLiteral() != "return" {
+	// 		t.Errorf("returnStmt.TokenLiteral not 'return', got %q", returnStmt.TokenLiteral())
+	// 	}
+	// }
 
 	// if program == nil {
 	// 	t.Fatalf("ParseProgram() returned nil")
