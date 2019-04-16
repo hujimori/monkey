@@ -9,6 +9,31 @@ import (
 	"github.com/monkey/object"
 )
 
+func TestReturnStatements(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{
+			`
+		if (10 > 1) {
+			if (10 > 1) {
+				return 10;
+			}
+
+			return 1;
+		}
+		`,
+			10,
+		},
+	}
+
+	for _, tt := range tests {
+		evalueated := testEval(tt.input)
+		testIntegerObject(t, evalueated, tt.expected)
+	}
+}
+
 func TestBangOperator(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -76,6 +101,16 @@ func TestEvalBooleanExpression(t *testing.T) {
 	}{
 		{"true", true},
 		{"false", false},
+		{"1 < 2", true},
+		{"1 > 2", false},
+		{"1 < 1", false},
+		{"1 > 1", false},
+		{"1 == 1", true},
+		{"1 != 1", false},
+		{"1 == 2", false},
+		{"1 != 2", true},
+		{"true == true", true},
+		{"true != false", true},
 	}
 
 	for _, tt := range tests {
